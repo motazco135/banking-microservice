@@ -1,0 +1,62 @@
+version: 2.1
+
+orbs:
+  maven: circleci/maven@1.4.1
+
+jobs:
+  build-and-test:
+    docker:
+      - image: cimg/openjdk:21.0
+      - image: postgres:16-alpine
+        environment:
+          POSTGRES_DB: payment_db
+          POSTGRES_USER: payment
+          POSTGRES_PASSWORD: payment
+      - image: confluentinc/cp-kafka:7.7.0
+        environment:
+          KAFKA_BROKER_ID: 1
+          KAFKA_ZOOKEEPER_CONNECT: localhost:2181
+          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - maven-deps-{{ checksum "pom.xml" }}
+            - maven-deps-
+      - run:
+          name: Build
+          command: mvn -B clean package -DskipTests
+      - run:
+          name: Test
+          command: mvn -B test
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: maven-deps-{{ checksum "pom.xml" }}
+      - store_test_results:
+          path: target/surefire-reports
+      - store_artifacts:
+          path: target/*.jar
+
+  docker-build:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: docker24
+      - run:
+          name: Build Docker Image
+          command: docker build -t com.bank.demo/payment-service:${CIRCLE_SHA1} .
+
+workflows:
+  build-test-deploy:
+    jobs:
+      - build-and-test
+      - docker-build:
+          requires:
+            - build-and-test
+          filters:
+            branches:
+              only: main

@@ -1,0 +1,75 @@
+sequenceDiagram
+    autonumber
+
+    actor Client
+    participant GW as API Gateway
+    participant CS as Customer Service
+    participant EB as Event Bus
+    participant AS as Account Service
+    participant PS as Payment Service
+    participant RAIL as IPS / SWIFT / Internal
+
+    rect rgb(230, 241, 251)
+        Note over Client,CS: Step 1 - Customer Registration
+        Client->>GW: POST /customers/register
+        Note right of Client: name, nationalId,<br/>email, phone
+        GW->>CS: route → customer.api
+        CS->>CS: customer.service validates profile
+        CS->>CS: customer.repository saves profile
+        CS->>CS: generates customerId
+        CS-->>GW: 201 Created customerId
+        GW-->>Client: 201 Created customerId
+        CS--)EB: publish CustomerProfileCreatedEvent
+        Note right of CS: customerId,<br/>profileStatus: ACTIVE
+    end
+
+    rect rgb(225, 245, 238)
+        Note over EB,AS: Step 2 - Default Account Auto-Creation
+        EB--)AS: deliver CustomerProfileCreatedEvent
+        AS->>AS: account.consumer receives event
+        AS->>AS: account.service creates default CURRENT account
+        AS->>AS: account.service sets status = ACTIVE
+        AS->>AS: account.service sets opening balance = 0
+        AS->>AS: account.repository saves account
+        AS->>AS: account.ledger initialises balance record
+        AS->>AS: generates accountId
+        AS--)EB: publish AccountActivatedEvent
+        Note right of AS: accountId, customerId,<br/>type: CURRENT,<br/>status: ACTIVE
+        AS-->>Client: push — default account activated
+    end
+
+%% rect rgb(225, 245, 238)
+%%     Note over Client,AS: Act 3 - Customer Opens Additional Account
+%%     Client->>GW: POST /accounts/open
+%%     Note right of Client: customerId,<br/>accountType: SAVINGS
+%%     GW->>AS: route → account.api
+%%     AS->>AS: account.service validates customerId exists
+%%     AS->>AS: account.service creates SAVINGS account
+%%     AS->>AS: account.service sets status = ACTIVE
+%%     AS->>AS: account.repository saves account
+%%     AS->>AS: account.ledger initialises balance record
+%%     AS->>AS: generates accountId
+%%     AS-->>GW: 201 Created accountId status ACTIVE
+%%     GW-->>Client: 201 Created accountId status ACTIVE
+%%     AS--)EB: publish AccountActivatedEvent
+%%     Note right of AS: accountId, customerId,<br/>type: SAVINGS,<br/>status: ACTIVE
+%% end
+
+    rect rgb(250, 236, 231)
+        Note over Client,RAIL:  Payment Initiation and Orchestration
+        Client->>GW: POST /payments/transfer
+        Note right of Client: customerId,<br/>debitAccountId,<br/>creditAccountId,<br/>amount, currency,<br/>channel
+        GW->>PS: route → payment.api
+        PS->>PS: payment.orchestrator validates customerId
+        PS->>PS: payment.orchestrator validates debitAccountId
+        Note right of PS: debitAccountId must<br/>belong to customerId
+        PS->>PS: payment.orchestrator validates creditAccountId
+        PS->>PS: payment.orchestrator validates both accounts ACTIVE
+        Note right of PS: IPS | SWIFT |<br/>INTERNAL
+        PS->>RAIL: submit payment instruction
+        RAIL-->>PS: payment accepted + RefNo
+        PS->>PS: payment.repository saves transaction
+        PS->>PS: generates transactionId
+        PS-->>GW: 200 OK transactionId RefNo
+        GW-->>Client: 200 OK transactionId RefNo
+    end

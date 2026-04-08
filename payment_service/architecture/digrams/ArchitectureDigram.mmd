@@ -1,0 +1,100 @@
+graph TD
+    Client([Client])
+    GW["API Gateway
+    api_gateway"]
+Client --> GW
+
+subgraph CS ["Customer Service — com.bank.demo.customer"]
+C_API["Customer API
+customer.api"]
+C_SVC["Customer Logic
+customer.service
+status: PENDING|ACTIVE|SUSPENDED"]
+C_REPO["Customer Repository
+customer.repository"]
+C_PUB["Event Publisher
+CustomerProfileCreatedEvent"]
+C_API --> C_SVC
+C_SVC --> C_REPO
+C_SVC --> C_PUB
+end
+
+subgraph AS ["Account Service - com.bank.demo.account"]
+A_API["Account API
+account.api
+open additional account"]
+A_SVC["Account Logic
+account.service
+key: customerId
+type: CURRENT|SAVINGS|LOAN
+status: ACTIVE|INACTIVE|SUSPENDED"]
+A_REPO["Account Repository
+account.repository"]
+A_LED["Balance Ledger
+account.ledger
+OWNER of balance"]
+A_PUB["Event Publisher
+AccountActivatedEvent"]
+A_CON["Event Consumer
+CustomerProfileCreatedEvent
+GLDebitPostedEvent
+GLCreditPostedEvent"]
+A_API --> A_SVC
+A_SVC --> A_REPO
+A_SVC --> A_LED
+A_CON --> A_SVC
+A_SVC --> A_PUB
+end
+
+subgraph PS ["Payment Service - com.bank.demo.payment"]
+P_API["Payment API
+payment.api
+channel: MOBILE|WEB"]
+P_ORC["Payment Orchestrator
+payment.orchestrator
+rail: IPS|SWIFT|INTERNAL"]
+P_RAIL["Rail Adapter
+payment.rail
+IPS | SWIFT | INTERNAL"]
+P_GL["GL Posting
+payment.gl
+DEBIT entry + CREDIT entry"]
+P_REPO["Payment Repository
+payment.repository"]
+P_PUB["Event Publisher
+PaymentProcessedEvent
+GLDebitPostedEvent
+GLCreditPostedEvent"]
+P_CON["Event Consumer
+AccountActivatedEvent"]
+P_API --> P_ORC
+P_ORC --> P_RAIL
+P_ORC --> P_GL
+P_GL --> P_PUB
+P_ORC --> P_REPO
+P_CON --> P_ORC
+end
+
+EB[["Event - Kafka"]]
+
+GW -->|POST register| C_API
+GW -->|POST open account| A_API
+GW -->|POST payment transfer| P_API
+
+C_PUB -->|CustomerProfileCreatedEvent| EB
+A_PUB -->|AccountActivatedEvent| EB
+P_PUB -->|GLDebitPostedEvent
+GLCreditPostedEvent
+PaymentProcessedEvent| EB
+
+EB -->|CustomerProfileCreatedEvent| A_CON
+EB -->|AccountActivatedEvent| P_CON
+EB -->|GLDebitPostedEvent
+GLCreditPostedEvent| A_CON
+
+style CS fill:#E6F1FB,stroke:#185FA5
+style AS fill:#E1F5EE,stroke:#0F6E56
+style PS fill:#FAECE7,stroke:#993C1D
+style GW fill:#FAEEDA,stroke:#854F0B
+style EB fill:#EEEDFE,stroke:#534AB7
+style Client fill:#F1EFE8,stroke:#5F5E5A
