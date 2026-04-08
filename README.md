@@ -123,7 +123,7 @@ Account Service, and Payment Service.
 ## Architecture Digram
 
 <figure>
-<img src="../../resources/ai/adl/arch-d.png"
+<img src="assets/arch-d.png"
 alt="Architecture Digram" />
 <figcaption aria-hidden="true">Architecture Digram</figcaption>
 </figure>
@@ -137,7 +137,7 @@ are only accessible through API Gateway.
 New Let’s See how the flow and interaction between our microservice.
 
 <figure>
-<img src="../../resources/ai/adl/sequence.png" alt="Sequence Digram" />
+<img src="assets/sequence.png" alt="Sequence Digram" />
 <figcaption aria-hidden="true">Sequence Digram</figcaption>
 </figure>
 
@@ -374,7 +374,7 @@ I have updated the CLAUDE.MD file by adding the following :
             2       Create the foundational directories for customer_service
 
 <figure>
-<img src="../../resources/ai/adl/project-structure.png"
+<img src="assets/project-structure.png"
 alt="The Project Structure" />
 <figcaption aria-hidden="true">The Project Structure</figcaption>
 </figure>
@@ -569,7 +569,7 @@ the required changes :
     - The API should include the the customer account details , to achieve this create a Feign Client to call the Account Micro service (service URL : http://localhost:8082/accounts/{customerId}) directly and aggregate the data.
 
 <figure>
-<img src="../../resources/ai/adl/ai-feedback.png"
+<img src="assets/ai-feedback.png"
 alt="Claude Code Feedback" />
 <figcaption>The Result</figcaption>
 </figure>
@@ -593,12 +593,12 @@ the code, Once they define the "@FeingClient" and build the project, the
 Test Case for ARchUnit will fail.
 
 <figure>
-<img src="../../resources/ai/adl/code-change.png" alt="Code Change" />
+<img src="assets/code-change.png" alt="Code Change" />
 <figcaption aria-hidden="true">Code Change</figcaption>
 </figure>
 
 <figure>
-<img src="../../resources/ai/adl/build_error.png" alt="Test Fails" />
+<img src="assets/build_error.png" alt="Test Fails" />
 <figcaption>ArchUnit Test Fails</figcaption>
 </figure>
 
