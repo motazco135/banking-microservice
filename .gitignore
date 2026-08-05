@@ -2,3 +2,4 @@
 /api-gateway/target/
 /payment_service/target/
 /customer_service/target/
+.DS_Store
