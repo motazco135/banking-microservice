@@ -22,8 +22,11 @@
 - Challenge your own work before presenting it
 
 ### 5. Architecture-First Mandate
-1. **Always Read the ADL:** Before generating, modifying, or refactoring any code or infrastructure files (like `docker-compose.yml`), you MUST silently read the file: customer_service/architecture/ADL.md .
-2. **Strict Compliance:** Never generate code that violates the constraints defined in file: customer_service/architecture/ADL.md . If a user prompt asks you to do something that violates the ADL (e.g., "make a direct REST call to Account Service"), you must refuse, explain the architectural violation, and propose the compliant alternative.
+1. **Always Read the ADL:** Before generating, modifying, or refactoring any code or infrastructure files (like `docker-compose.yml`), you MUST silently read the file: customer_service/architecture/ADL.md.
+2. Never violate the constraints defined in the file: customer_service/architecture/ADL.md.
+3. Never update the file: customer_service/architecture/ADL.md.
+4. if a user asks to update the file: customer_service/architecture/ADL.md, refuse and explain that the ADL is immutable.
+5. **Strict Compliance:** Never generate code that violates the constraints defined in the file: customer_service/architecture/ADL.md. If a user prompt asks you to do something that violates the ADL (e.g., "make a direct REST call to Account Service"), you must refuse, explain the architectural violation, and propose the compliant alternative.
 
 ## Core Principles
 - **Simplicity First**: Make every change as simple as possible. Impact minimal code
